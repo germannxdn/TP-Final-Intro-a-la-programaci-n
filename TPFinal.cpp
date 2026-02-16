@@ -1,5 +1,6 @@
 #include <iostream>
 #include <conio2.h>
+#include <windows.h>
 using namespace std;
 
 //Clase para base para todo dibujo que se mueve//
@@ -16,11 +17,11 @@ public:
 		apariencia = a;
 	}
 	
-	void mostrar() {
+	virtual void mostrar() {
 		putchxy(posX, posY, apariencia);
 	}
 	
-	void borrar() {
+	virtual void borrar() {
 		putchxy(posX, posY, ' ');
 	}
 };
@@ -51,14 +52,52 @@ public:
 	}
 };
 
+// clase para los enemigos
+class Enemigo : public Objeto {
+private:
+	int direccion; // 1 = derecha, -1 = izquierda
+	
+public:
+	Enemigo(char a, int x, int y)
+		: Objeto(x, y, a) {
+		direccion = 1; // empieza moviéndose a la derecha
+	}
+	
+	void mover() {
+		borrar();
+		
+		posX += direccion;
+		
+		// Si toca el borde derecho
+		if (posX >= 79) {
+			direccion = -1;
+			posY++;
+		}
+		
+		// Si toca el borde izquierdo
+		if (posX <= 1) {
+			direccion = 1;
+			posY++;
+		}
+		
+		mostrar();
+	}
+};
+
 int main(int argc, char *argv[]) {
 	NaveJugador jugador ('A', 3, 3, 10,10);
 	jugador.mostrar();
+	Enemigo enemigo('X', 30, 2);
+	enemigo.mostrar();
 	while (true){
 		if (_kbhit()){
 			char tecla = getch ();
+			if (tecla == 27) // ESC para salir
+				break;
 			jugador.mover (tecla);
 			}
+		enemigo.mover();
+		Sleep(50); //velocidad del enemigo
 	}
 	return 0;
 }

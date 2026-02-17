@@ -3,6 +3,20 @@
 #include <windows.h>
 using namespace std;
 
+void pantallaInicio() {
+	clrscr();
+	cout << "============================\n";
+	cout << "SPACE INVADERS LITE\n";
+	cout << "German Cerda\n";
+	cout << "============================\n";
+	cout << "Controles:\n";
+	cout << "A - Izquierda\n";
+	cout << "D - Derecha\n";
+	cout << "ESC - Salir\n\n";
+	cout << "Presione una tecla para comenzar...";
+	getch();
+	clrscr();
+}
 //Clase para base para todo dibujo que se mueve//
 class Objeto {
 protected:
@@ -54,50 +68,113 @@ public:
 
 // clase para los enemigos
 class Enemigo : public Objeto {
-private:
-	int direccion; // 1 = derecha, -1 = izquierda
-	
+protected:
+	int resistencia;
 public:
-	Enemigo(char a, int x, int y)
+	Enemigo(char a, int x, int y, int r)
 		: Objeto(x, y, a) {
-		direccion = 1; // empieza moviéndose a la derecha
+		resistencia = r;
+	}
+	void recibirDisparo() {
+		resistencia--;
+		if (resistencia <= 0) {
+			borrar();
+		}
 	}
 	
-	void mover() {
+	bool estaVivo() {
+		return resistencia > 0;
+	}
+	
+	int getX() { return posX; }
+	int getY() { return posY; }
+	
+	void mover(int direccion) {
 		borrar();
-		
 		posX += direccion;
-		
-		// Si toca el borde derecho
-		if (posX >= 79) {
-			direccion = -1;
-			posY++;
-		}
-		
-		// Si toca el borde izquierdo
-		if (posX <= 1) {
-			direccion = 1;
-			posY++;
-		}
-		
+		mostrar();
+	}
+	
+	void bajar() {
+		borrar();
+		posY++;
 		mostrar();
 	}
 };
 
 int main(int argc, char *argv[]) {
-	NaveJugador jugador ('A', 3, 3, 10,10);
+	pantallaInicio();
+	const int FILAS = 3;
+	const int COLUMNAS = 5;
+	NaveJugador jugador ('A', 3, 3, 40,22);
 	jugador.mostrar();
-	Enemigo enemigo('X', 30, 2);
-	enemigo.mostrar();
+	Enemigo enemigos[FILAS][COLUMNAS] = {
+		{
+		Enemigo('X', 20, 2, 1),
+			Enemigo('X', 25, 2, 1),
+			Enemigo('X', 30, 2, 1),
+			Enemigo('X', 35, 2, 1),
+			Enemigo('X', 40, 2, 1)
+	},
+	{
+		Enemigo('M', 20, 4, 2),
+			Enemigo('M', 25, 4, 2),
+			Enemigo('M', 30, 4, 2),
+			Enemigo('M', 35, 4, 2),
+			Enemigo('M', 40, 4, 2)
+	},
+		{
+			Enemigo('W', 20, 6, 3),
+				Enemigo('W', 25, 6, 3),
+				Enemigo('W', 30, 6, 3),
+				Enemigo('W', 35, 6, 3),
+				Enemigo('W', 40, 6, 3)
+		}
+	};
+	// Mostrar enemigos al inicio
+	for (int i = 0; i < FILAS; i++) {
+		for (int j = 0; j < COLUMNAS; j++) {
+			enemigos[i][j].mostrar();
+		}
+	}
+	int direccion = 1;
 	while (true){
+		
+		bool tocarBorde = false;
+		// detectar borde
+		for (int i = 0; i < FILAS; i++) {
+			for (int j = 0; j < COLUMNAS; j++) {
+				if (enemigos[i][j].estaVivo()) {
+					if (enemigos[i][j].getX() >= 79 || enemigos[i][j].getX() <= 1)
+						tocarBorde = true;
+				}
+			}
+		}
+		
+		if (tocarBorde) {
+			direccion *= -1;
+			
+			for (int i = 0; i < FILAS; i++) {
+				for (int j = 0; j < COLUMNAS; j++) {
+					enemigos[i][j].bajar();
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < FILAS; i++) {
+				for (int j = 0; j < COLUMNAS; j++) {
+					enemigos[i][j].mover(direccion);
+				}
+			}
+		}
 		if (_kbhit()){
 			char tecla = getch ();
 			if (tecla == 27) // ESC para salir
 				break;
 			jugador.mover (tecla);
 			}
-		enemigo.mover();
-		Sleep(50); //velocidad del enemigo
+		
+		Sleep(150); //velocidad del enemigo
 	}
 	return 0;
 }

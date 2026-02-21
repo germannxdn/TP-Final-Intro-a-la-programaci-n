@@ -2,7 +2,7 @@
 #include <conio2.h>
 #include <windows.h>
 using namespace std;
-
+//pantalla de inicio
 void pantallaInicio() {
 	clrscr();
 	cout << "============================\n";
@@ -152,11 +152,12 @@ int main(int argc, char *argv[]) {
 		}
 		
 		if (tocarBorde) {
-			direccion *= -1;
+			direccion *= -1; //cambia de direccion
 			
 			for (int i = 0; i < FILAS; i++) {
 				for (int j = 0; j < COLUMNAS; j++) {
-					enemigos[i][j].bajar();
+					enemigos[i][j].bajar(); //bajan una fila
+					enemigos[i][j].mover(direccion); //salen del borde
 				}
 			}
 		}

@@ -52,7 +52,8 @@ public:
 		vida = v;
 		defensa = d;
 	}
-	
+	int getX() { return posX; }
+	int getY() { return posY; }
 	void mover(char tecla) {
 		borrar();
 		
@@ -101,6 +102,52 @@ public:
 		mostrar();
 	}
 };
+//clase para las balas
+class Bala : public Objeto {
+private:
+	bool activa;
+	int direccion; // -1 = sube (jugador), +1 = baja (enemigo)
+	
+public:
+	Bala() : Objeto(0,0,'|') {
+		activa = false;
+		direccion = -1;
+	}
+	
+	void disparar(int x, int y, int dir) {
+		if (!activa) {
+			posX = x;
+			posY = y;
+			direccion = dir;
+			activa = true;
+		}
+	}
+	
+	void mover() {
+		if (activa) {
+			borrar();
+			posY += direccion;
+			
+			if (posY <= 1 || posY >= 24) {
+				activa = false;
+			} else {
+				mostrar();
+			}
+		}
+	}
+	
+	bool estaActiva() {
+		return activa;
+	}
+	
+	int getX() { return posX; }
+	int getY() { return posY; }
+	
+	void desactivar() {
+		borrar();
+		activa = false;
+	}
+};
 
 int main(int argc, char *argv[]) {
 	pantallaInicio();
@@ -108,6 +155,7 @@ int main(int argc, char *argv[]) {
 	const int COLUMNAS = 5;
 	NaveJugador jugador ('A', 3, 3, 40,22);
 	jugador.mostrar();
+	Bala bala;
 	Enemigo enemigos[FILAS][COLUMNAS] = {
 		{
 		Enemigo('X', 20, 2, 1),
@@ -168,14 +216,41 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
+		
 		if (_kbhit()){
 			char tecla = getch ();
 			if (tecla == 27) // ESC para salir
 				break;
-			jugador.mover (tecla);
+			if (tecla == ' ') {
+				// Dispara desde la posición actual de la nave hacia arriba (-1)
+				// Se resta 1 a la posición Y para que la bala aparezca justo arriba de la nave.
+				bala.disparar(jugador.getX(), jugador.getY() - 1, -1);
+			} else {
+				// Si no es espacio, se pasa la tecla al método mover para manejar A o D
+				jugador.mover(tecla);
 			}
+		}
 		
-		Sleep(150); //velocidad del enemigo
+		// la bala debe moverse sola en cada ciclo
+		bala.mover();
+		
+		// logica de colisión (Jugador -> Enemigo)
+		if (bala.estaActiva()) { // Solo verificamos colisiones si hay una bala en pantalla
+			for (int i = 0; i < FILAS; i++) {
+				for (int j = 0; j < COLUMNAS; j++) {
+					// Verificamos si el enemigo está vivo y si sus coordenadas coinciden con la bala
+					if (enemigos[i][j].estaVivo() && 
+						bala.getX() == enemigos[i][j].getX() && 
+							bala.getY() == enemigos[i][j].getY()) {
+						
+						// Si hay impacto: el enemigo reduce su resistencia y la bala se desactiva
+						enemigos[i][j].recibirDisparo();
+						bala.desactivar();
+					}
+				}
+			}
+		}
+		Sleep(100); //velocidad del enemigo
 	}
 	return 0;
 }

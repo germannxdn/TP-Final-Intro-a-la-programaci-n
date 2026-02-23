@@ -240,6 +240,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	int direccion = 1;
+	int contadorFrames = 0;
 	while (true){
 		//Dibujar interfaz
 		dibujarHUD(jugador.getVidas());
@@ -261,7 +262,7 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-		
+		if (contadorFrames % 5 == 0) { //enemigos mas lentos
 		bool tocarBorde = false;
 		// detectar borde
 		for (int i = 0; i < FILAS; i++) {
@@ -290,7 +291,7 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-		
+		}
 		if (_kbhit()){
 			char tecla = getch ();
 			if (tecla == 27) // ESC para salir
@@ -329,8 +330,8 @@ int main(int argc, char *argv[]) {
 			int filaAzar = rand() % FILAS;
 			int colAzar = rand() % COLUMNAS;
 			
-			// probabilidad de disparo 10% en cada ciclo
-			if (enemigos[filaAzar][colAzar]->estaVivo() && (rand() % 100 < 10)) {
+			// probabilidad de disparo 5% en cada ciclo
+			if (enemigos[filaAzar][colAzar]->estaVivo() && (rand() % 100 < 5)) {
 				// dispara desde la posición del enemigo hacia abajo (dirección +1)
 				balaEnemigo.disparar(enemigos[filaAzar][colAzar]->getX(), 
 					enemigos[filaAzar][colAzar]->getY() + 1, 1);
@@ -340,7 +341,8 @@ int main(int argc, char *argv[]) {
 		// Mover la bala enemiga de forma autónoma
 		balaEnemigo.mover();
 		
-		Sleep(100); //velocidad del enemigo
+		contadorFrames++;
+		Sleep(30); //velocidad del enemigo
 	}
 	//liberar memoria
 	for (int i = 0; i < FILAS; i++) {

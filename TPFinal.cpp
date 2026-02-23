@@ -54,6 +54,11 @@ public:
 		vida = v;
 		defensa = d;
 	}
+	int getVidas() { return vida; } // para mostrar en el HUD
+	
+	void perderVida() {
+		if (vida > 0) vida--;
+	}
 	int getX() { return posX; }
 	int getY() { return posY; }
 	void mover(char tecla) {
@@ -190,7 +195,18 @@ public:
 		activa = false;
 	}
 };
-
+//funcion para mostrar el HUD
+void dibujarHUD(int vidas) {
+	textcolor(WHITE);
+	putchxy(65, 1, ' '); // Limpia rastro anterior
+	putchxy(60, 1, 'V');
+	putchxy(61, 1, 'I');
+	putchxy(62, 1, 'D');
+	putchxy(63, 1, 'A');
+	putchxy(64, 1, 'S');
+	putchxy(65, 1, ':');
+	putchxy(67, 1, (char)(vidas + 48)); 
+}
 int main(int argc, char *argv[]) {
 	srand(time(NULL)); // generador de números aleatorios
 	Bala balaEnemigo;  // instancia de bala para los enemigos
@@ -225,6 +241,26 @@ int main(int argc, char *argv[]) {
 	
 	int direccion = 1;
 	while (true){
+		//Dibujar interfaz
+		dibujarHUD(jugador.getVidas());
+		
+		// colision bala enemiga contra jugador
+		if (balaEnemigo.estaActiva()) {
+			if (balaEnemigo.getX() == jugador.getX() && 
+				balaEnemigo.getY() == jugador.getY()) {
+				
+				jugador.perderVida();   // Restamos 1 a la variable vida
+				balaEnemigo.desactivar(); // Quitamos la bala de la pantalla
+				
+				// Termina el juego si las vidas llegan a cero
+				if (jugador.getVidas() <= 0) {
+					clrscr();
+					cout << "GAME OVER - Te has quedado sin vidas." << endl;
+					Sleep(2000);
+					break; 
+				}
+			}
+		}
 		
 		bool tocarBorde = false;
 		// detectar borde

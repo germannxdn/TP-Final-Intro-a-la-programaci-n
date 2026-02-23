@@ -1,6 +1,7 @@
 #include <iostream>
 #include <conio2.h>
 #include <windows.h>
+#include <ctime>
 using namespace std;
 //pantalla de inicio
 void pantallaInicio() {
@@ -191,6 +192,8 @@ public:
 };
 
 int main(int argc, char *argv[]) {
+	srand(time(NULL)); // generador de números aleatorios
+	Bala balaEnemigo;  // instancia de bala para los enemigos
 	pantallaInicio();
 	const int FILAS = 3;
 	const int COLUMNAS = 5;
@@ -285,7 +288,23 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-		Sleep(90); //velocidad del enemigo
+		// logica del disparo aleatorio enemigos
+		if (!balaEnemigo.estaActiva()) { // solo disparan si no hay una bala enemiga en pantalla
+			int filaAzar = rand() % FILAS;
+			int colAzar = rand() % COLUMNAS;
+			
+			// probabilidad de disparo 10% en cada ciclo
+			if (enemigos[filaAzar][colAzar]->estaVivo() && (rand() % 100 < 10)) {
+				// dispara desde la posición del enemigo hacia abajo (dirección +1)
+				balaEnemigo.disparar(enemigos[filaAzar][colAzar]->getX(), 
+					enemigos[filaAzar][colAzar]->getY() + 1, 1);
+			}
+		}
+		
+		// Mover la bala enemiga de forma autónoma
+		balaEnemigo.mover();
+		
+		Sleep(100); //velocidad del enemigo
 	}
 	//liberar memoria
 	for (int i = 0; i < FILAS; i++) {

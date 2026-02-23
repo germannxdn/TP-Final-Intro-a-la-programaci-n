@@ -30,7 +30,8 @@ public:
 		posY = y;
 		apariencia = a;
 	}
-	
+	//Destructor virtual base
+	virtual ~Objeto() {} 
 	virtual void mostrar() {
 		putchxy(posX, posY, apariencia);
 	}
@@ -71,11 +72,22 @@ public:
 class Enemigo : public Objeto {
 protected:
 	int resistencia;
+	int color; //color asignado de libreria conio2
+	
 public:
-	Enemigo(char a, int x, int y, int r)
+	Enemigo(int x, int y, char a, int r, int c)
 		: Objeto(x, y, a) {
 		resistencia = r;
+		color = c;
 	}
+	
+	virtual void mostrar() {
+		if (!estaVivo()) return; // No dibuja si el enemigo fue destruido
+		textcolor(color);        // Cambia el color del texto en consola
+		putchxy(posX, posY, apariencia);
+		textcolor(WHITE);        // Restaura el color a blanco para el resto del juego
+	}
+	
 	void recibirDisparo() {
 		resistencia--;
 		if (resistencia <= 0) {
@@ -91,15 +103,44 @@ public:
 	int getY() { return posY; }
 	
 	void mover(int direccion) {
+		if (!estaVivo()) return;
+		
 		borrar();
 		posX += direccion;
 		mostrar();
 	}
 	
 	void bajar() {
+		if (!estaVivo()) return;
+		
 		borrar();
 		posY++;
 		mostrar();
+	}
+};
+
+//clases derivadas de enemigo
+// enemigo débil (1 vida, verde, al frente)
+class EnemigoDebil : public Enemigo {
+public:
+	EnemigoDebil(int x, int y)
+		: Enemigo(x, y, 'W', 1, GREEN) {
+	}
+};
+
+// Enemigo Medio (2 vidas, azul, en medio)
+class EnemigoMedio : public Enemigo {
+public:
+	EnemigoMedio(int x, int y)
+		: Enemigo(x, y, 'M', 2, LIGHTBLUE) {
+	}
+};
+
+// Enemigo Fuerte (3 vidas, rojo, por detras)
+class EnemigoFuerte : public Enemigo {
+public:
+	EnemigoFuerte(int x, int y)
+		: Enemigo(x, y, 'X', 3, RED) {
 	}
 };
 //clase para las balas
@@ -156,35 +197,29 @@ int main(int argc, char *argv[]) {
 	NaveJugador jugador ('A', 3, 3, 40,22);
 	jugador.mostrar();
 	Bala bala;
-	Enemigo enemigos[FILAS][COLUMNAS] = {
-		{
-		Enemigo('X', 20, 2, 1),
-			Enemigo('X', 25, 2, 1),
-			Enemigo('X', 30, 2, 1),
-			Enemigo('X', 35, 2, 1),
-			Enemigo('X', 40, 2, 1)
-	},
-	{
-		Enemigo('M', 20, 4, 2),
-			Enemigo('M', 25, 4, 2),
-			Enemigo('M', 30, 4, 2),
-			Enemigo('M', 35, 4, 2),
-			Enemigo('M', 40, 4, 2)
-	},
-		{
-			Enemigo('W', 20, 6, 3),
-				Enemigo('W', 25, 6, 3),
-				Enemigo('W', 30, 6, 3),
-				Enemigo('W', 35, 6, 3),
-				Enemigo('W', 40, 6, 3)
-		}
-	};
+	//matriz de punteros a la clase base enemigo
+	Enemigo* enemigos[FILAS][COLUMNAS];
+	// Fila superior (fuertes)
+	for (int j = 0; j < COLUMNAS; j++) {
+		enemigos[0][j] = new EnemigoFuerte(20 + j * 5, 2);
+	}
+	
+	// Fila del medio
+	for (int j = 0; j < COLUMNAS; j++) {
+		enemigos[1][j] = new EnemigoMedio(20 + j * 5, 4);
+	}
+	
+	// Fila inferior (débiles)
+	for (int j = 0; j < COLUMNAS; j++) {
+		enemigos[2][j] = new EnemigoDebil(20 + j * 5, 6);
+	}
 	// Mostrar enemigos al inicio
 	for (int i = 0; i < FILAS; i++) {
 		for (int j = 0; j < COLUMNAS; j++) {
-			enemigos[i][j].mostrar();
+			enemigos[i][j]->mostrar();
 		}
 	}
+	
 	int direccion = 1;
 	while (true){
 		
@@ -192,8 +227,8 @@ int main(int argc, char *argv[]) {
 		// detectar borde
 		for (int i = 0; i < FILAS; i++) {
 			for (int j = 0; j < COLUMNAS; j++) {
-				if (enemigos[i][j].estaVivo()) {
-					if (enemigos[i][j].getX() >= 79 || enemigos[i][j].getX() <= 1)
+				if (enemigos[i][j]->estaVivo()) {
+					if (enemigos[i][j]->getX() >= 79 || enemigos[i][j]->getX() <= 1)
 						tocarBorde = true;
 				}
 			}
@@ -204,15 +239,15 @@ int main(int argc, char *argv[]) {
 			
 			for (int i = 0; i < FILAS; i++) {
 				for (int j = 0; j < COLUMNAS; j++) {
-					enemigos[i][j].bajar(); //bajan una fila
-					enemigos[i][j].mover(direccion); //salen del borde
+					enemigos[i][j]->bajar(); //bajan una fila
+					enemigos[i][j]->mover(direccion); //salen del borde
 				}
 			}
 		}
 		else {
 			for (int i = 0; i < FILAS; i++) {
 				for (int j = 0; j < COLUMNAS; j++) {
-					enemigos[i][j].mover(direccion);
+					enemigos[i][j]->mover(direccion);
 				}
 			}
 		}
@@ -239,18 +274,24 @@ int main(int argc, char *argv[]) {
 			for (int i = 0; i < FILAS; i++) {
 				for (int j = 0; j < COLUMNAS; j++) {
 					// Verificamos si el enemigo está vivo y si sus coordenadas coinciden con la bala
-					if (enemigos[i][j].estaVivo() && 
-						bala.getX() == enemigos[i][j].getX() && 
-							bala.getY() == enemigos[i][j].getY()) {
+					if (enemigos[i][j]->estaVivo() && 
+						bala.getX() == enemigos[i][j]->getX() && 
+							bala.getY() == enemigos[i][j]->getY()) {
 						
 						// Si hay impacto: el enemigo reduce su resistencia y la bala se desactiva
-						enemigos[i][j].recibirDisparo();
+						enemigos[i][j]->recibirDisparo();
 						bala.desactivar();
 					}
 				}
 			}
 		}
-		Sleep(100); //velocidad del enemigo
+		Sleep(90); //velocidad del enemigo
+	}
+	//liberar memoria
+	for (int i = 0; i < FILAS; i++) {
+		for (int j = 0; j < COLUMNAS; j++) {
+			delete enemigos[i][j];
+		}
 	}
 	return 0;
 }

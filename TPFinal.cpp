@@ -252,6 +252,12 @@ int main(int argc, char *argv[]) {
 				
 				jugador.perderVida();   // Restamos 1 a la variable vida
 				balaEnemigo.desactivar(); // Quitamos la bala de la pantalla
+				//efecto visual cuando el jugador sufre daño
+				textcolor(LIGHTRED);
+				jugador.mostrar(); 
+				Sleep(250); // Pausa para ver el efecto
+				textcolor(WHITE);
+				jugador.mostrar();
 				
 				// Termina el juego si las vidas llegan a cero
 				if (jugador.getVidas() <= 0) {
@@ -352,7 +358,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 		contadorFrames++;
-		Sleep(30); //velocidad del enemigo
+		Sleep(30); //velocidad
 	}
 	//liberar memoria
 	for (int i = 0; i < FILAS; i++) {

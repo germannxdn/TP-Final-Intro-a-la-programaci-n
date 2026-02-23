@@ -196,16 +196,15 @@ public:
 	}
 };
 //funcion para mostrar el HUD
-void dibujarHUD(int vidas) {
+void dibujarHUD(int vidas, int puntos) {
 	textcolor(WHITE);
-	putchxy(65, 1, ' '); // Limpia rastro anterior
-	putchxy(60, 1, 'V');
-	putchxy(61, 1, 'I');
-	putchxy(62, 1, 'D');
-	putchxy(63, 1, 'A');
-	putchxy(64, 1, 'S');
-	putchxy(65, 1, ':');
-	putchxy(67, 1, (char)(vidas + 48)); 
+	// Vidas a la izquierda
+	gotoxy(2, 1); 
+	cout << "VIDAS: " << vidas << "   "; 
+	
+	// Puntos al centro/derecha
+	gotoxy(30, 1); 
+	cout << "PUNTOS: " << puntos << "      ";
 }
 int main(int argc, char *argv[]) {
 	srand(time(NULL)); // generador de números aleatorios
@@ -216,21 +215,23 @@ int main(int argc, char *argv[]) {
 	NaveJugador jugador ('A', 3, 3, 40,22);
 	jugador.mostrar();
 	Bala bala;
+	int puntos = 0;
+	int enemigosVivos = FILAS * COLUMNAS; // Para detectar la victoria
 	//matriz de punteros a la clase base enemigo
 	Enemigo* enemigos[FILAS][COLUMNAS];
 	// Fila superior (fuertes)
 	for (int j = 0; j < COLUMNAS; j++) {
-		enemigos[0][j] = new EnemigoFuerte(20 + j * 5, 2);
+		enemigos[0][j] = new EnemigoFuerte(20 + j * 5, 4);
 	}
 	
 	// Fila del medio
 	for (int j = 0; j < COLUMNAS; j++) {
-		enemigos[1][j] = new EnemigoMedio(20 + j * 5, 4);
+		enemigos[1][j] = new EnemigoMedio(20 + j * 5, 6);
 	}
 	
 	// Fila inferior (débiles)
 	for (int j = 0; j < COLUMNAS; j++) {
-		enemigos[2][j] = new EnemigoDebil(20 + j * 5, 6);
+		enemigos[2][j] = new EnemigoDebil(20 + j * 5, 8);
 	}
 	// Mostrar enemigos al inicio
 	for (int i = 0; i < FILAS; i++) {
@@ -243,8 +244,7 @@ int main(int argc, char *argv[]) {
 	int contadorFrames = 0;
 	while (true){
 		//Dibujar interfaz
-		dibujarHUD(jugador.getVidas());
-		
+		dibujarHUD(jugador.getVidas(), puntos);
 		// colision bala enemiga contra jugador
 		if (balaEnemigo.estaActiva()) {
 			if (balaEnemigo.getX() == jugador.getX() && 
@@ -273,7 +273,6 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-		
 		if (tocarBorde) {
 			direccion *= -1; //cambia de direccion
 			
@@ -321,6 +320,10 @@ int main(int argc, char *argv[]) {
 						// Si hay impacto: el enemigo reduce su resistencia y la bala se desactiva
 						enemigos[i][j]->recibirDisparo();
 						bala.desactivar();
+						puntos +=100; //sumar puntos con cada impacto
+						if (!enemigos[i][j]->estaVivo()) {
+							enemigosVivos--; // Descontar si el enemigo murió
+						}
 					}
 				}
 			}
@@ -330,8 +333,8 @@ int main(int argc, char *argv[]) {
 			int filaAzar = rand() % FILAS;
 			int colAzar = rand() % COLUMNAS;
 			
-			// probabilidad de disparo 5% en cada ciclo
-			if (enemigos[filaAzar][colAzar]->estaVivo() && (rand() % 100 < 5)) {
+			// probabilidad de disparo 3% en cada ciclo
+			if (enemigos[filaAzar][colAzar]->estaVivo() && (rand() % 100 < 3)) {
 				// dispara desde la posición del enemigo hacia abajo (dirección +1)
 				balaEnemigo.disparar(enemigos[filaAzar][colAzar]->getX(), 
 					enemigos[filaAzar][colAzar]->getY() + 1, 1);
@@ -340,7 +343,14 @@ int main(int argc, char *argv[]) {
 		
 		// Mover la bala enemiga de forma autónoma
 		balaEnemigo.mover();
-		
+		//condicion de victoria
+		if (enemigosVivos <= 0) {
+			clrscr();
+			textcolor(LIGHTGREEN);
+			gotoxy(30, 12); cout << "¡VICTORIA! PUNTAJE FINAL: " << puntos;
+			Sleep(3000);
+			break;
+		}
 		contadorFrames++;
 		Sleep(30); //velocidad del enemigo
 	}

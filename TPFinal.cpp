@@ -6,15 +6,32 @@ using namespace std;
 //pantalla de inicio
 void pantallaInicio() {
 	clrscr();
-	cout << "============================\n";
-	cout << "SPACE INVADERS LITE\n";
-	cout << "German Cerda\n";
-	cout << "============================\n";
-	cout << "Controles:\n";
-	cout << "A - Izquierda\n";
-	cout << "D - Derecha\n";
-	cout << "ESC - Salir\n\n";
-	cout << "Presione una tecla para comenzar...";
+	textcolor(LIGHTGREEN);
+	gotoxy(25, 3);  cout << "      " << (char)219 << (char)219 << "      " << (char)219 << (char)219;
+	gotoxy(25, 4);  cout << "        " << (char)219 << (char)219 << (char)219 << (char)219;
+	gotoxy(25, 5);  cout << "      " << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219;
+	gotoxy(25, 6);  cout << "    " << (char)219 << (char)219 << "  " << (char)219 << (char)219 << (char)219 << (char)219 << "  " << (char)219 << (char)219;
+	gotoxy(25, 7);  cout << "    " << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219;
+	gotoxy(25, 8);  cout << "      " << (char)219 << " " << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << (char)219 << " " << (char)219;
+	gotoxy(25, 9);  cout << "    " << (char)219 << "          " << (char)219;
+	gotoxy(25, 10); cout << "      " << (char)219 << (char)219 << "      " << (char)219 << (char)219;
+	
+	textcolor(WHITE);
+	gotoxy(27, 12); cout << "SPACE INVADERS LITE";
+	textcolor(YELLOW);
+	gotoxy(31, 14); cout << "German Cerda";
+	
+	textcolor(WHITE);
+	gotoxy(25, 16); cout << "============================";
+	gotoxy(30, 17); cout << "CONTROLES:";
+	gotoxy(30, 18); cout << "a - Izquierda";
+	gotoxy(30, 19); cout << "d - Derecha";
+	gotoxy(30, 20); cout << "SPACE - Disparar";
+	gotoxy(30, 21); cout << "ESC - Salir";
+	gotoxy(25, 22); cout << "============================";
+	
+	textcolor(LIGHTCYAN);
+	gotoxy(22, 24); cout << "Presione una tecla para comenzar...";
 	getch();
 	clrscr();
 }
@@ -355,6 +372,26 @@ int main(int argc, char *argv[]) {
 			textcolor(LIGHTGREEN);
 			gotoxy(30, 12); cout << "¡VICTORIA! PUNTAJE FINAL: " << puntos;
 			Sleep(3000);
+			break;
+		}
+		//derrota por invasion
+		bool invasion = false;
+		for (int i = 0; i < FILAS; i++) {
+			for (int j = 0; j < COLUMNAS; j++) {
+				// Si el enemigo está vivo y su posY llegó a la del jugador
+				if (enemigos[i][j]->estaVivo() && enemigos[i][j]->getY() >= jugador.getY()) {
+					invasion = true;
+				}
+			}
+		}
+		
+		if (invasion) {
+			clrscr();
+			textcolor(YELLOW);
+			gotoxy(30, 11); cout << "¡PERDISTE. INVASION COMPLETADA!";
+			gotoxy(30, 12); cout << "Los enemigos aterrizaron...";
+			gotoxy(30, 14); cout << "Puntaje: " << puntos;
+			Sleep(4000);
 			break;
 		}
 		contadorFrames++;
